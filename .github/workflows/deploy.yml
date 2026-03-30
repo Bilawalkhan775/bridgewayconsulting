@@ -21,4 +21,4 @@ jobs:
           password: ${{ secrets.SFTP_PASSWORD }}
           port: ${{ secrets.SFTP_PORT }}
           local_path: ./
-          remote_path: /public_html/
+          remote_path: /
