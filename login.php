@@ -2,40 +2,123 @@
 session_start();
 require_once 'db.php';
 
+/*
+|--------------------------------------------------------------------------
+| DEBUG MODE
+|--------------------------------------------------------------------------
+| Set to false after testing is complete
+*/
+$debug_mode = true;
+$debug_messages = [];
+
+/*
+|--------------------------------------------------------------------------
+| DEBUG HELPER
+|--------------------------------------------------------------------------
+*/
+function add_debug(&$debug_messages, $message)
+{
+    $debug_messages[] = $message;
+}
+
+/*
+|--------------------------------------------------------------------------
+| CHECK DATABASE CONNECTION
+|--------------------------------------------------------------------------
+*/
+if (!isset($conn) || !$conn) {
+    die("Database connection failed. Please check db.php");
+} else {
+    add_debug($debug_messages, "Database connection object is available.");
+}
+
+/*
+|--------------------------------------------------------------------------
+| REDIRECT IF ALREADY LOGGED IN
+|--------------------------------------------------------------------------
+*/
 if (isset($_SESSION['admin_id'])) {
+    add_debug($debug_messages, "Admin session already exists. Redirecting to dashboard.");
     header('Location: dashboard.php');
     exit;
 }
 
 $error = '';
+$success = '';
 
+/*
+|--------------------------------------------------------------------------
+| HANDLE LOGIN
+|--------------------------------------------------------------------------
+*/
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = trim($_POST['email'] ?? '');
     $password = trim($_POST['password'] ?? '');
 
+    add_debug($debug_messages, "Form submitted.");
+    add_debug($debug_messages, "Entered email: " . htmlspecialchars($email));
+
     if (empty($email) || empty($password)) {
         $error = 'Please enter email and password.';
+        add_debug($debug_messages, "Validation failed: email or password is empty.");
     } else {
-        $stmt = $conn->prepare("SELECT id, full_name, email, password FROM admins WHERE email = ? LIMIT 1");
-        $stmt->bind_param("s", $email);
-        $stmt->execute();
-        $result = $stmt->get_result();
+        $sql = "SELECT id, full_name, email, password FROM admins WHERE email = ? LIMIT 1";
+        $stmt = $conn->prepare($sql);
 
-        if ($result->num_rows === 1) {
-            $admin = $result->fetch_assoc();
-
-            if (password_verify($password, $admin['password'])) {
-                $_SESSION['admin_id'] = $admin['id'];
-                $_SESSION['admin_name'] = $admin['full_name'];
-                $_SESSION['admin_email'] = $admin['email'];
-
-                header('Location: dashboard.php');
-                exit;
-            } else {
-                $error = 'Invalid email or password.';
-            }
+        if (!$stmt) {
+            $error = 'Database query preparation failed.';
+            add_debug($debug_messages, "Prepare failed: " . $conn->error);
         } else {
-            $error = 'Invalid email or password.';
+            add_debug($debug_messages, "SQL statement prepared successfully.");
+
+            $stmt->bind_param("s", $email);
+
+            if (!$stmt->execute()) {
+                $error = 'Failed to execute login query.';
+                add_debug($debug_messages, "Execute failed: " . $stmt->error);
+            } else {
+                add_debug($debug_messages, "SQL statement executed successfully.");
+
+                $result = $stmt->get_result();
+
+                if (!$result) {
+                    $error = 'Failed to fetch login result.';
+                    add_debug($debug_messages, "get_result() failed. This may happen if mysqlnd is missing.");
+                } else {
+                    add_debug($debug_messages, "Rows found: " . $result->num_rows);
+
+                    if ($result->num_rows === 1) {
+                        $admin = $result->fetch_assoc();
+
+                        add_debug($debug_messages, "Admin record found.");
+                        add_debug($debug_messages, "Admin ID: " . $admin['id']);
+                        add_debug($debug_messages, "Admin Email from DB: " . htmlspecialchars($admin['email']));
+                        add_debug($debug_messages, "Password hash found in DB.");
+
+                        if (password_verify($password, $admin['password'])) {
+                            add_debug($debug_messages, "Password verified successfully.");
+
+                            $_SESSION['admin_id'] = $admin['id'];
+                            $_SESSION['admin_name'] = $admin['full_name'];
+                            $_SESSION['admin_email'] = $admin['email'];
+
+                            $success = 'Login successful. Redirecting to dashboard...';
+                            add_debug($debug_messages, "Session variables set successfully.");
+
+                            header('refresh:2;url=dashboard.php');
+                        } else {
+                            $error = 'Invalid email or password.';
+                            add_debug($debug_messages, "Password verification failed.");
+                            add_debug($debug_messages, "Entered password did not match stored hash.");
+                        }
+                    } else {
+                        $error = 'Invalid email or password.';
+                        add_debug($debug_messages, "No matching admin found for this email.");
+                    }
+                }
+            }
+
+            $stmt->close();
         }
     }
 }
@@ -217,11 +300,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             box-shadow: none !important;
         }
 
-        .single-input {
-            border-radius: 14px !important;
-            border-left: 1px solid #dbe4f0 !important;
-        }
-
         .form-control:focus,
         .input-group:focus-within .input-group-text {
             border-color: rgba(13, 110, 253, 0.55);
@@ -265,6 +343,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         .alert {
             border-radius: 16px;
+        }
+
+        .debug-box {
+            background: #fff8e1;
+            border: 1px solid #ffe08a;
+            color: #664d03;
+            border-radius: 16px;
+            padding: 16px 18px;
+            margin-bottom: 20px;
+            font-size: 0.93rem;
+        }
+
+        .debug-box strong {
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .debug-box ul {
+            margin: 0;
+            padding-left: 18px;
+        }
+
+        .debug-box li {
+            margin-bottom: 6px;
+            word-break: break-word;
         }
 
         @media (max-width: 991.98px) {
@@ -324,6 +427,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             </div>
                         <?php endif; ?>
 
+                        <?php if (!empty($success)): ?>
+                            <div class="alert alert-success">
+                                <?php echo htmlspecialchars($success); ?>
+                            </div>
+                        <?php endif; ?>
+
+                        <?php if ($debug_mode && !empty($debug_messages)): ?>
+                            <div class="debug-box">
+                                <strong>Debug Information</strong>
+                                <ul>
+                                    <?php foreach ($debug_messages as $message): ?>
+                                        <li><?php echo htmlspecialchars($message); ?></li>
+                                    <?php endforeach; ?>
+                                </ul>
+                            </div>
+                        <?php endif; ?>
+
                         <form method="POST" action="">
                             <div class="mb-3">
                                 <label class="form-label">Email Address</label>
@@ -331,7 +451,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <span class="input-group-text">
                                         <i class="bi bi-envelope"></i>
                                     </span>
-                                    <input type="email" name="email" class="form-control" placeholder="Enter your email" required>
+                                    <input
+                                        type="email"
+                                        name="email"
+                                        class="form-control"
+                                        placeholder="Enter your email"
+                                        value="<?php echo htmlspecialchars($_POST['email'] ?? ''); ?>"
+                                        required
+                                    >
                                 </div>
                             </div>
 
@@ -341,7 +468,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <span class="input-group-text">
                                         <i class="bi bi-lock"></i>
                                     </span>
-                                    <input type="password" name="password" class="form-control" placeholder="Enter your password" required>
+                                    <input
+                                        type="password"
+                                        name="password"
+                                        class="form-control"
+                                        placeholder="Enter your password"
+                                        required
+                                    >
                                 </div>
                             </div>
 
