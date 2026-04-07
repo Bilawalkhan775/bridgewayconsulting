@@ -252,9 +252,7 @@ function e($value) {
                 <h1 class="header-title">Candidates Dashboard</h1>
                 <p class="header-text">Manage submitted candidate profiles, apply filters, and review each applicant in detail.</p>
             </div>
-            <div>
-                <a href="CandidateRegistrationPage.php" class="btn btn-primary">Add New Candidate</a>
-            </div>
+            
         </div>
     </div>
 
