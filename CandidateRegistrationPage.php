@@ -4,9 +4,26 @@ require_once 'db.php';
 $success = "";
 $error = "";
 
-function clean_input($data) {
-    return htmlspecialchars(trim($data), ENT_QUOTES, 'UTF-8');
+if (isset($_GET['success']) && $_GET['success'] == '1') {
+    $success = "Candidate profile submitted successfully.";
 }
+
+function clean_input($data) {
+    return htmlspecialchars(trim((string)$data), ENT_QUOTES, 'UTF-8');
+}
+
+$first_name = "";
+$last_name = "";
+$email = "";
+$phone = "";
+$right_to_work_uk = "";
+$share_code = "";
+$job_preference = "";
+$current_location = "";
+$convenient_shift = "";
+$working_flexible = "";
+$experience_years = "";
+$additional_notes = "";
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $first_name        = trim($_POST['first_name'] ?? '');
@@ -57,12 +74,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     $error = "CV file must be less than 5MB.";
                 } else {
                     $upload_dir = __DIR__ . '/uploads/cvs/';
+
                     if (!is_dir($upload_dir)) {
                         mkdir($upload_dir, 0755, true);
                     }
 
-                    $safe_original_name = preg_replace('/[^a-zA-Z0-9._-]/', '_', basename($file_name));
-                    $cv_file_name = time() . '_' . $safe_original_name;
+                    $cv_file_name = uniqid('cv_', true) . '.' . $file_ext;
                     $upload_path = $upload_dir . $cv_file_name;
 
                     if (!move_uploaded_file($file_tmp, $upload_path)) {
@@ -110,20 +127,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 );
 
                 if ($stmt->execute()) {
-                    $success = "Candidate profile submitted successfully.";
-
-                    $first_name = "";
-                    $last_name = "";
-                    $email = "";
-                    $phone = "";
-                    $right_to_work_uk = "";
-                    $share_code = "";
-                    $job_preference = "";
-                    $current_location = "";
-                    $convenient_shift = "";
-                    $working_flexible = "";
-                    $experience_years = "";
-                    $additional_notes = "";
+                    $stmt->close();
+                    header("Location: CandidateRegistrationPage.php?success=1");
+                    exit;
                 } else {
                     $error = "Database error: " . $stmt->error;
                 }
@@ -281,17 +287,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     .form-subtitle{
       color:var(--muted);
       margin:6px 0 0;
-    }
-
-    .demo-badge{
-      background:linear-gradient(135deg, var(--primary), var(--secondary));
-      color:#fff;
-      border:none;
-      padding:10px 16px;
-      border-radius:999px;
-      font-weight:700;
-      font-size:13px;
-      box-shadow:0 10px 24px rgba(37,99,235,0.18);
     }
 
     .section-box{
@@ -481,11 +476,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
           <h2 class="form-title">Candidate Information Form</h2>
           <p class="form-subtitle">Please complete the details below so we can evaluate your profile properly.</p>
         </div>
-  
       </div>
 
       <?php if (!empty($success)): ?>
-        <div class="alert-custom alert-success-custom">
+        <div class="alert-custom alert-success-custom" id="successMessage">
           <?php echo clean_input($success); ?>
         </div>
       <?php endif; ?>
@@ -504,19 +498,19 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
               <div class="row g-3">
                 <div class="col-md-6">
                   <label class="form-label">First Name <span class="required-star">*</span></label>
-                  <input type="text" name="first_name" class="form-control" value="<?php echo clean_input($first_name ?? ''); ?>" placeholder="Enter first name" required>
+                  <input type="text" name="first_name" class="form-control" value="<?php echo clean_input($first_name); ?>" placeholder="Enter first name" required>
                 </div>
                 <div class="col-md-6">
                   <label class="form-label">Last Name <span class="required-star">*</span></label>
-                  <input type="text" name="last_name" class="form-control" value="<?php echo clean_input($last_name ?? ''); ?>" placeholder="Enter last name" required>
+                  <input type="text" name="last_name" class="form-control" value="<?php echo clean_input($last_name); ?>" placeholder="Enter last name" required>
                 </div>
                 <div class="col-md-6">
                   <label class="form-label">Email Address <span class="required-star">*</span></label>
-                  <input type="email" name="email" class="form-control" value="<?php echo clean_input($email ?? ''); ?>" placeholder="Enter email address" required>
+                  <input type="email" name="email" class="form-control" value="<?php echo clean_input($email); ?>" placeholder="Enter email address" required>
                 </div>
                 <div class="col-md-6">
                   <label class="form-label">Phone Number <span class="required-star">*</span></label>
-                  <input type="text" name="phone" class="form-control" value="<?php echo clean_input($phone ?? ''); ?>" placeholder="Enter phone number" required>
+                  <input type="text" name="phone" class="form-control" value="<?php echo clean_input($phone); ?>" placeholder="Enter phone number" required>
                 </div>
               </div>
             </div>
@@ -530,13 +524,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                   <label class="form-label">Right to Work in UK <span class="required-star">*</span></label>
                   <select name="right_to_work_uk" class="form-select" required>
                     <option value="">Select option</option>
-                    <option value="Yes" <?php echo (($right_to_work_uk ?? '') === 'Yes') ? 'selected' : ''; ?>>Yes</option>
-                    <option value="No" <?php echo (($right_to_work_uk ?? '') === 'No') ? 'selected' : ''; ?>>No</option>
+                    <option value="Yes" <?php echo ($right_to_work_uk === 'Yes') ? 'selected' : ''; ?>>Yes</option>
+                    <option value="No" <?php echo ($right_to_work_uk === 'No') ? 'selected' : ''; ?>>No</option>
                   </select>
                 </div>
                 <div class="col-md-6">
                   <label class="form-label">Share Code</label>
-                  <input type="text" name="share_code" class="form-control" value="<?php echo clean_input($share_code ?? ''); ?>" placeholder="Enter UK share code">
+                  <input type="text" name="share_code" class="form-control" value="<?php echo clean_input($share_code); ?>" placeholder="Enter UK share code">
                 </div>
                 <div class="col-md-6">
                   <label class="form-label">Job Preference <span class="required-star">*</span></label>
@@ -553,7 +547,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                       'Retail Assistant'
                     ];
                     foreach ($job_options as $job) {
-                        $selected = (($job_preference ?? '') === $job) ? 'selected' : '';
+                        $selected = ($job_preference === $job) ? 'selected' : '';
                         echo '<option value="' . clean_input($job) . '" ' . $selected . '>' . clean_input($job) . '</option>';
                     }
                     ?>
@@ -561,7 +555,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 </div>
                 <div class="col-md-6">
                   <label class="form-label">Current Location</label>
-                  <input type="text" name="current_location" class="form-control" value="<?php echo clean_input($current_location ?? ''); ?>" placeholder="Enter city or area">
+                  <input type="text" name="current_location" class="form-control" value="<?php echo clean_input($current_location); ?>" placeholder="Enter city or area">
                 </div>
               </div>
             </div>
@@ -582,26 +576,22 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 <label class="form-label d-block">Convenient Shift</label>
                 <div class="d-flex flex-wrap gap-3">
                   <div class="form-check">
-                    <input class="form-check-input" type="checkbox" name="convenient_shift[]" value="Morning" id="morning"
-                      <?php echo in_array('Morning', $selected_shifts_arr) ? 'checked' : ''; ?>>
+                    <input class="form-check-input" type="checkbox" name="convenient_shift[]" value="Morning" id="morning" <?php echo in_array('Morning', $selected_shifts_arr) ? 'checked' : ''; ?>>
                     <label class="form-check-label" for="morning">Morning</label>
                   </div>
 
                   <div class="form-check">
-                    <input class="form-check-input" type="checkbox" name="convenient_shift[]" value="Evening" id="evening"
-                      <?php echo in_array('Evening', $selected_shifts_arr) ? 'checked' : ''; ?>>
+                    <input class="form-check-input" type="checkbox" name="convenient_shift[]" value="Evening" id="evening" <?php echo in_array('Evening', $selected_shifts_arr) ? 'checked' : ''; ?>>
                     <label class="form-check-label" for="evening">Evening</label>
                   </div>
 
                   <div class="form-check">
-                    <input class="form-check-input" type="checkbox" name="convenient_shift[]" value="Night" id="night"
-                      <?php echo in_array('Night', $selected_shifts_arr) ? 'checked' : ''; ?>>
+                    <input class="form-check-input" type="checkbox" name="convenient_shift[]" value="Night" id="night" <?php echo in_array('Night', $selected_shifts_arr) ? 'checked' : ''; ?>>
                     <label class="form-check-label" for="night">Night</label>
                   </div>
 
                   <div class="form-check">
-                    <input class="form-check-input" type="checkbox" name="convenient_shift[]" value="Weekend" id="weekend"
-                      <?php echo in_array('Weekend', $selected_shifts_arr) ? 'checked' : ''; ?>>
+                    <input class="form-check-input" type="checkbox" name="convenient_shift[]" value="Weekend" id="weekend" <?php echo in_array('Weekend', $selected_shifts_arr) ? 'checked' : ''; ?>>
                     <label class="form-check-label" for="weekend">Weekend</label>
                   </div>
                 </div>
@@ -611,14 +601,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 <label class="form-label d-block">Working Flexible <span class="required-star">*</span></label>
                 <div class="d-flex flex-wrap gap-4">
                   <div class="form-check">
-                    <input class="form-check-input" type="radio" name="working_flexible" value="Yes" id="flexibleYes" required
-                      <?php echo (($working_flexible ?? '') === 'Yes') ? 'checked' : ''; ?>>
+                    <input class="form-check-input" type="radio" name="working_flexible" value="Yes" id="flexibleYes" required <?php echo ($working_flexible === 'Yes') ? 'checked' : ''; ?>>
                     <label class="form-check-label" for="flexibleYes">Yes</label>
                   </div>
 
                   <div class="form-check">
-                    <input class="form-check-input" type="radio" name="working_flexible" value="No" id="flexibleNo" required
-                      <?php echo (($working_flexible ?? '') === 'No') ? 'checked' : ''; ?>>
+                    <input class="form-check-input" type="radio" name="working_flexible" value="No" id="flexibleNo" required <?php echo ($working_flexible === 'No') ? 'checked' : ''; ?>>
                     <label class="form-check-label" for="flexibleNo">No</label>
                   </div>
                 </div>
@@ -637,7 +625,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     <?php
                     $experience_options = ['Fresher', '1 Year', '2 Years', '3 Years', '5+ Years'];
                     foreach ($experience_options as $exp) {
-                        $selected = (($experience_years ?? '') === $exp) ? 'selected' : '';
+                        $selected = ($experience_years === $exp) ? 'selected' : '';
                         echo '<option value="' . clean_input($exp) . '" ' . $selected . '>' . clean_input($exp) . '</option>';
                     }
                     ?>
@@ -652,7 +640,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
                 <div class="col-12">
                   <label class="form-label">Additional Notes</label>
-                  <textarea name="additional_notes" class="form-control" rows="5" placeholder="Write any extra details here..."><?php echo clean_input($additional_notes ?? ''); ?></textarea>
+                  <textarea name="additional_notes" class="form-control" rows="5" placeholder="Write any extra details here..."><?php echo clean_input($additional_notes); ?></textarea>
                 </div>
               </div>
             </div>
@@ -672,5 +660,17 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    setTimeout(function () {
+      const successBox = document.getElementById('successMessage');
+      if (successBox) {
+        successBox.style.transition = 'opacity 0.5s ease';
+        successBox.style.opacity = '0';
+        setTimeout(function () {
+          successBox.style.display = 'none';
+        }, 500);
+      }
+    }, 3000);
+  </script>
 </body>
 </html>
