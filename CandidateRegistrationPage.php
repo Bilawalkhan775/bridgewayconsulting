@@ -38,6 +38,40 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $experience_years  = trim($_POST['experience_years'] ?? '');
     $additional_notes  = trim($_POST['additional_notes'] ?? '');
 
+
+}
+      $profile_image_name = null;
+
+if (isset($_FILES['profile_image']) && $_FILES['profile_image']['error'] !== UPLOAD_ERR_NO_FILE) {
+    if ($_FILES['profile_image']['error'] === 0) {
+        $allowed_image_extensions = ['jpg', 'jpeg', 'png', 'webp'];
+        $image_name = $_FILES['profile_image']['name'];
+        $image_tmp  = $_FILES['profile_image']['tmp_name'];
+        $image_size = $_FILES['profile_image']['size'];
+        $image_ext  = strtolower(pathinfo($image_name, PATHINFO_EXTENSION));
+
+        if (!in_array($image_ext, $allowed_image_extensions)) {
+            $error = "Only JPG, JPEG, PNG, and WEBP files are allowed for profile picture.";
+        } elseif ($image_size > 3 * 1024 * 1024) {
+            $error = "Profile picture must be less than 3MB.";
+        } else {
+            $image_upload_dir = __DIR__ . '/uploads/profile_images/';
+
+            if (!is_dir($image_upload_dir)) {
+                mkdir($image_upload_dir, 0755, true);
+            }
+
+            $profile_image_name = uniqid('profile_', true) . '.' . $image_ext;
+            $image_upload_path = $image_upload_dir . $profile_image_name;
+
+            if (!move_uploaded_file($image_tmp, $image_upload_path)) {
+                $error = "Failed to upload profile picture.";
+            }
+        }
+    } else {
+        $error = "There was an error uploading the profile picture.";
+    }
+
     $convenient_shift = "";
     if (!empty($_POST['convenient_shift']) && is_array($_POST['convenient_shift'])) {
         $allowed_shifts = ['Morning', 'Evening', 'Night', 'Weekend'];
@@ -93,38 +127,40 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         if (empty($error)) {
             $stmt = $conn->prepare("INSERT INTO candidates (
-                first_name,
-                last_name,
-                email,
-                phone,
-                right_to_work_uk,
-                share_code,
-                job_preference,
-                current_location,
-                convenient_shift,
-                working_flexible,
-                experience_years,
-                cv_file,
-                additional_notes
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    first_name,
+    last_name,
+    email,
+    phone,
+    right_to_work_uk,
+    share_code,
+    job_preference,
+    current_location,
+    convenient_shift,
+    working_flexible,
+    experience_years,
+    profile_image,
+    cv_file,
+    additional_notes
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
             if ($stmt) {
                 $stmt->bind_param(
-                    "sssssssssssss",
-                    $first_name,
-                    $last_name,
-                    $email,
-                    $phone,
-                    $right_to_work_uk,
-                    $share_code,
-                    $job_preference,
-                    $current_location,
-                    $convenient_shift,
-                    $working_flexible,
-                    $experience_years,
-                    $cv_file_name,
-                    $additional_notes
-                );
+    "ssssssssssssss",
+    $first_name,
+    $last_name,
+    $email,
+    $phone,
+    $right_to_work_uk,
+    $share_code,
+    $job_preference,
+    $current_location,
+    $convenient_shift,
+    $working_flexible,
+    $experience_years,
+    $profile_image_name,
+    $cv_file_name,
+    $additional_notes
+);
 
                 if ($stmt->execute()) {
                     $stmt->close();
@@ -637,6 +673,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                   <input type="file" name="cv_file" class="form-control" accept=".pdf,.doc,.docx">
                   <small class="text-muted">Allowed formats: PDF, DOC, DOCX. Max size: 5MB.</small>
                 </div>
+                <div class="col-12">
+    <label class="form-label">Profile Picture</label>
+    <input type="file" name="profile_image" class="form-control" accept=".jpg,.jpeg,.png,.webp">
+    <small class="text-muted">Optional. Allowed formats: JPG, JPEG, PNG, WEBP. Max size: 3MB.</small>
+</div>
 
                 <div class="col-12">
                   <label class="form-label">Additional Notes</label>

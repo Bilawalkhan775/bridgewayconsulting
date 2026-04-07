@@ -384,7 +384,13 @@ $cv_exists = !empty($candidate['cv_file']) && file_exists(__DIR__ . '/uploads/cv
 
             <div class="profile-main">
                 <div class="profile-left">
-                    <div class="avatar-xl"><?php echo $initial; ?></div>
+                    <div class="avatar-xl" style="overflow:hidden;">
+    <?php if (!empty($candidate['profile_image']) && file_exists(__DIR__ . '/uploads/profile_images/' . $candidate['profile_image'])): ?>
+        <img src="uploads/profile_images/<?php echo rawurlencode($candidate['profile_image']); ?>" alt="Profile Picture" style="width:100%; height:100%; object-fit:cover;">
+    <?php else: ?>
+        <?php echo $initial; ?>
+    <?php endif; ?>
+</div>
                     <div>
                         <h1 class="profile-title"><?php echo e($full_name); ?></h1>
                         <p class="profile-sub">

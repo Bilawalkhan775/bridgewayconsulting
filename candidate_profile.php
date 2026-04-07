@@ -102,6 +102,19 @@ if (!empty($candidate['convenient_shift'])) {
             font-weight:800;
             margin-bottom:18px;
         }
+        .avatar-xl {
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: linear-gradient(135deg, rgba(37,99,235,0.14), rgba(124,58,237,0.18));
+}
         .badge-soft{
             display:inline-block;
             padding:8px 12px;
@@ -140,7 +153,13 @@ if (!empty($candidate['convenient_shift'])) {
     <div class="profile-card">
         <div class="d-flex flex-column flex-lg-row justify-content-between gap-4">
             <div class="d-flex align-items-center gap-3">
-                <div class="avatar-lg"><?php echo strtoupper(substr($candidate['first_name'], 0, 1)); ?></div>
+                <div class="avatar-xl" style="overflow:hidden;">
+    <?php if (!empty($candidate['profile_image']) && file_exists(__DIR__ . '/uploads/profile_images/' . $candidate['profile_image'])): ?>
+        <img src="uploads/profile_images/<?php echo rawurlencode($candidate['profile_image']); ?>" alt="Profile Picture" style="width:100%; height:100%; object-fit:cover;">
+    <?php else: ?>
+        <?php echo $initial; ?>
+    <?php endif; ?>
+</div>
                 <div>
                     <h1 class="profile-name"><?php echo e($candidate['first_name'] . ' ' . $candidate['last_name']); ?></h1>
                     <p class="profile-sub"><?php echo e($candidate['job_preference']); ?> • <?php echo e($candidate['current_location'] ?: 'Location not provided'); ?></p>

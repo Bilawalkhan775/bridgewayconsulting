@@ -876,9 +876,13 @@ function e($value) {
                             <tr>
                                 <td>
                                     <div class="candidate-cell">
-                                        <div class="avatar-box">
-                                            <?php echo strtoupper(substr($row['first_name'], 0, 1)); ?>
-                                        </div>
+                                        <div class="avatar-box" style="overflow:hidden;">
+    <?php if (!empty($row['profile_image']) && file_exists(__DIR__ . '/uploads/profile_images/' . $row['profile_image'])): ?>
+        <img src="uploads/profile_images/<?php echo rawurlencode($row['profile_image']); ?>" alt="Profile" style="width:100%; height:100%; object-fit:cover;">
+    <?php else: ?>
+        <?php echo strtoupper(substr($row['first_name'], 0, 1)); ?>
+    <?php endif; ?>
+</div>
                                         <div>
                                             <div class="candidate-name"><?php echo e($row['first_name'] . ' ' . $row['last_name']); ?></div>
                                             <div class="candidate-meta"><?php echo e($row['email']); ?></div>
