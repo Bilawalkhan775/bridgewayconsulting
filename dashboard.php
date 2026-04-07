@@ -430,6 +430,7 @@ function e($value) {
                                 <div class="d-flex justify-content-end gap-2 flex-wrap">
                                     <a href="candidate_profile.php?id=<?php echo (int)$row['id']; ?>" class="btn btn-sm btn-outline-primary">View</a>
                                     <a href="candidate_delete.php?id=<?php echo (int)$row['id']; ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure you want to delete this candidate?');">Delete</a>
+                                    <a href="candidate_share.php?id=<?php echo (int)$row['id']; ?>" class="btn btn-sm btn-outline-secondary">Share</a>
                                 </div>
                             </td>
                         </tr>
