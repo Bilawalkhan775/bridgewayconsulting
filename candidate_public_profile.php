@@ -53,6 +53,16 @@ if (!empty($candidate['convenient_shift'])) {
             border-radius:24px;
             box-shadow:0 18px 45px rgba(15,23,42,0.08);
         }
+        .btn-primary{
+    background:linear-gradient(135deg, #2563eb, #7c3aed);
+    border:none;
+    border-radius:14px;
+    font-weight:700;
+    padding:12px 20px;
+    color:#fff;
+    text-decoration:none;
+    display:inline-block;
+}
         .profile-card{ padding:30px; margin-bottom:24px; }
         .info-card{ padding:24px; height:100%; }
         .avatar-lg{
@@ -78,6 +88,7 @@ if (!empty($candidate['convenient_shift'])) {
 <body>
 <div class="container page-wrap">
     <div class="profile-card">
+    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
         <div class="d-flex align-items-center gap-3">
             <div class="avatar-lg"><?php echo strtoupper(substr($candidate['first_name'], 0, 1)); ?></div>
             <div>
@@ -85,6 +96,16 @@ if (!empty($candidate['convenient_shift'])) {
                 <p class="profile-sub"><?php echo e($candidate['job_preference']); ?> • <?php echo e($candidate['current_location'] ?: 'Location not provided'); ?></p>
             </div>
         </div>
+
+        <div>
+            <?php if (!empty($candidate['cv_file']) && file_exists(__DIR__ . '/uploads/cvs/' . $candidate['cv_file'])): ?>
+                <a href="uploads/cvs/<?php echo rawurlencode($candidate['cv_file']); ?>" target="_blank" class="btn btn-primary">
+                    View CV
+                </a>
+            <?php endif; ?>
+        </div>
+    </div>
+</div>
     </div>
 
     <div class="row g-4">
