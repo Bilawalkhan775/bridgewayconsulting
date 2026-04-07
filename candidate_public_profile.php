@@ -99,7 +99,7 @@ if (!empty($candidate['convenient_shift'])) {
 
         <div>
             <?php if (!empty($candidate['cv_file']) && file_exists(__DIR__ . '/uploads/cvs/' . $candidate['cv_file'])): ?>
-                <a href="uploads/cvs/<?php echo rawurlencode($candidate['cv_file']); ?>" target="_blank" class="btn btn-primary">
+                <a href="../uploads/cvs/<?php echo rawurlencode($candidate['cv_file']); ?>" target="_blank" class="btn btn-primary">
                     View CV
                 </a>
             <?php endif; ?>

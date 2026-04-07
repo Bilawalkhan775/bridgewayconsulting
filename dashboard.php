@@ -418,7 +418,7 @@ function e($value) {
                             <td><?php echo e($row['experience_years'] ?: '—'); ?></td>
                             <td>
                                 <?php if (!empty($row['cv_file']) && file_exists(__DIR__ . '/uploads/cvs/' . $row['cv_file'])): ?>
-                                    <a href="uploads/cvs/<?php echo rawurlencode($row['cv_file']); ?>" target="_blank" class="btn btn-sm btn-outline-primary">Open CV</a>
+                                    <a href="../uploads/cvs/<?php echo rawurlencode($row['cv_file']); ?>" target="_blank" class="btn btn-sm btn-outline-primary">Open CV</a>
                                 <?php else: ?>
                                     <span class="text-muted">No CV</span>
                                 <?php endif; ?>

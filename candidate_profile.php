@@ -149,7 +149,7 @@ if (!empty($candidate['convenient_shift'])) {
             <div class="d-flex gap-2 flex-wrap align-items-start">
                 <a href="dashboard.php" class="btn btn-outline-secondary">Back to Dashboard</a>
                 <?php if (!empty($candidate['cv_file']) && file_exists(__DIR__ . '/uploads/cvs/' . $candidate['cv_file'])): ?>
-                    <a href="uploads/cvs/<?php echo rawurlencode($candidate['cv_file']); ?>" target="_blank" class="btn btn-primary">Open CV</a>
+                    <a href="../uploads/cvs/<?php echo rawurlencode($candidate['cv_file']); ?>" target="_blank" class="btn btn-primary">Open CV</a>
                 <?php endif; ?>
             </div>
         </div>
