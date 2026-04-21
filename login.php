@@ -8,7 +8,7 @@ require_once 'db.php';
 |--------------------------------------------------------------------------
 | Set to false after testing is complete
 */
-$debug_mode = true;
+$debug_mode = false;
 $debug_messages = [];
 
 /*
